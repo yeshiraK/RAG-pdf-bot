@@ -6,7 +6,6 @@ import time
 
 import os
 
-# Update imports for LangChain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -40,11 +39,10 @@ def get_vector_store(text_chunks, model_name, api_key=None):
     if model_name == "Google AI":
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
     
-    # Throttle embedding requests to stay under quota (150 per minute = 2.5 per second)
     embedded_chunks = []
     for i, chunk in enumerate(text_chunks):
         embedded_chunks.append(chunk)
-        time.sleep(0.5)  # 0.5 sec pause per request (120 req/min)
+        time.sleep(0.5)  
     
     vector_store = FAISS.from_texts(embedded_chunks, embedding=embeddings)
     vector_store.save_local("faiss_index")
@@ -85,7 +83,6 @@ def user_input(user_question, model_name, api_key, pdf_docs, conversation_histor
         pdf_names = [pdf.name for pdf in pdf_docs] if pdf_docs else []
         conversation_history.append((user_question_output, response_output, model_name, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ", ".join(pdf_names)))
 
-        # conversation_history.append((user_question_output, response_output, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ", ".join(pdf_names)))
 
     
     st.markdown(
@@ -139,12 +136,11 @@ def user_input(user_question, model_name, api_key, pdf_docs, conversation_histor
         """,
         unsafe_allow_html=True
     )
-            # <div class="info" style="margin-left: 20px;">Timestamp: {datetime.now()}</div>
-            # <div class="info" style="margin-left: 20px;">PDF Name: {", ".join(pdf_names)}</div>
+            
     if len(conversation_history) == 1:
         conversation_history = []
     elif len(conversation_history) > 1 :
-        last_item = conversation_history[-1]  # Son öğeyi al
+        last_item = conversation_history[-1]  
         conversation_history.remove(last_item) 
     for question, answer, model_name, timestamp, pdf_name in reversed(conversation_history):
         st.markdown(
@@ -164,15 +160,13 @@ def user_input(user_question, model_name, api_key, pdf_docs, conversation_histor
             """,
             unsafe_allow_html=True
         )
-                # <div class="info" style="margin-left: 20px;">Timestamp: {timestamp}</div>
-                # <div class="info" style="margin-left: 20px;">PDF Name: {pdf_name}</div>
+               
 
     if len(st.session_state.conversation_history) > 0:
         df = pd.DataFrame(st.session_state.conversation_history, columns=["Question", "Answer", "Model", "Timestamp", "PDF Name"])
 
-        # df = pd.DataFrame(st.session_state.conversation_history, columns=["Question", "Answer", "Timestamp", "PDF Name"])
         csv = df.to_csv(index=False)
-        b64 = base64.b64encode(csv.encode()).decode()  # Convert to base64
+        b64 = base64.b64encode(csv.encode()).decode()  
         href = f'<a href="data:file/csv;base64,{b64}" download="conversation_history.csv"><button>Download conversation history as CSV file</button></a>'
         st.sidebar.markdown(href, unsafe_allow_html=True)
         st.markdown("To download the conversation, click the Download button on the left side at the bottom of the conversation.")
@@ -209,20 +203,20 @@ def main():
         clear_button = col1.button("Rerun")
 
         if reset_button:
-            st.session_state.conversation_history = []  # Clear conversation history
-            st.session_state.user_question = None  # Clear user question input 
+            st.session_state.conversation_history = []  
+            st.session_state.user_question = None  
             
             
-            api_key = None  # Reset Google API key
-            pdf_docs = None  # Reset PDF document
+            api_key = None  
+            pdf_docs = None  
             
         else:
             if clear_button:
                 if 'user_question' in st.session_state:
                     st.warning("The previous query will be discarded.")
-                    st.session_state.user_question = ""  # Temizle
+                    st.session_state.user_question = ""  
                     if len(st.session_state.conversation_history) > 0:
-                        st.session_state.conversation_history.pop()  # Son sorguyu kaldır
+                        st.session_state.conversation_history.pop()  
                 else:
                     st.warning("The question in the input will be queried again.")
 
@@ -241,7 +235,7 @@ def main():
 
     if user_question:
         user_input(user_question, model_name, api_key, pdf_docs, st.session_state.conversation_history)
-        st.session_state.user_question = ""  # Clear user question input 
+        st.session_state.user_question = ""   
 
 if __name__ == "__main__":
     main()
