@@ -1,6 +1,3 @@
-# python -m venv myenv
-# myenv/scripts/activate
-
 import streamlit as st
 import wikipedia
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, pipeline
@@ -8,13 +5,11 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 
-#  This MUST be the first Streamlit command
-st.set_page_config(page_title="RAG LLM Q&A", page_icon="🧠")
+st.set_page_config(page_title="RAG LLM Q&A", page_icon="💠")
 
 st.title(" Retrieval-Augmented Generation (RAG) with Wikipedia")
 st.write("Ask questions on any topic using Wikipedia as an external knowledge source.")
 
-# Load models with caching
 @st.cache_resource
 def load_embedding_model():
     return SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
@@ -29,7 +24,6 @@ def load_qa_pipeline():
 embedding_model = load_embedding_model()
 qa_pipeline = load_qa_pipeline()
 
-# Function to fetch Wikipedia content
 def get_wikipedia_content(topic):
     try:
         page = wikipedia.page(topic)
@@ -41,7 +35,6 @@ def get_wikipedia_content(topic):
         st.warning(f"Ambiguous topic. Please be more specific. Options: {e.options}")
         return None
 
-# Split text into chunks
 def split_text(text, tokenizer, chunk_size=256, chunk_overlap=20):
     tokens = tokenizer.tokenize(text)
     chunks = []
@@ -54,8 +47,7 @@ def split_text(text, tokenizer, chunk_size=256, chunk_overlap=20):
         start = end - chunk_overlap
     return chunks
 
-# UI: Input topic
-topic = st.text_input("🔍 Enter a topic to retrieve knowledge from Wikipedia:", value="Apple Computers")
+topic = st.text_input(" Enter a topic to retrieve knowledge from Wikipedia:", value="Apple Computers")
 
 if topic:
     with st.spinner("Retrieving content from Wikipedia..."):
@@ -73,8 +65,8 @@ if topic:
             index = faiss.IndexFlatL2(dimension)
             index.add(np.array(embeddings))
 
-        # UI: Input user question
-        query = st.text_input("💬 Ask a question about this topic:")
+        
+        query = st.text_input(" Ask a question about this topic:")
 
         if query:
             query_embedding = embedding_model.encode([query])
@@ -86,7 +78,7 @@ if topic:
             for i, chunk in enumerate(retrieved_chunks):
                 st.markdown(f"**Chunk {i+1}:** {chunk[:300]}...")
 
-            # Answering
+            
             with st.spinner("Generating answer using QA model..."):
                 context = " ".join(retrieved_chunks)
                 answer = qa_pipeline(question=query, context=context)
